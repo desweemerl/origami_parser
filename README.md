@@ -1,21 +1,4 @@
-# OrigamiParser
+# Origami.Parser
 
-**TODO: Add description**
-
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `origami_parser` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:origami_parser, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/origami_parser](https://hexdocs.pm/origami_parser).
-
+This parser is used for parsing any languages as long as the syntax is provided. Currently, only javascript syntax is implemented.
+This project was initially part of Origami but it has been splitted for being operated everywhere.
