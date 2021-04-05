@@ -82,18 +82,18 @@ defmodule Origami.Parser.Js.Function do
       [{:identifier, _, _} = argument | tail] ->
         case tail do
           [] ->
-            Token.merge(token, arguments ++ [argument])
+            Token.concat(token, arguments ++ [argument])
 
           [{:comma, _, _} | tail] ->
             parse_arguments(token, tail, arguments ++ [argument])
 
           [head | _] ->
-            error = Error.new("unexpected token", interval: head.interval)
+            error = Error.new("unexpected token", interval: Token.get(head, :interval))
             Token.put(token, :error, error)
         end
 
       [head | _] ->
-        error = Error.new("unexpected token", interval: head.interval)
+        error = Error.new("unexpected token", interval: Token.get(head, :interval))
         Token.put(token, :error, error)
     end
   end

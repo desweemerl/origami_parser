@@ -38,7 +38,7 @@ defmodule Origami.Parser.Js.Group do
   def group_type(<<char>>) when char == ?), do: :close_parenthesis
   def group_type(<<char>>) when char == ?[, do: :bracket
   def group_type(<<char>>) when char == ?], do: :close_bracket
-  def group_type(<<char>>) when char == ?{, do: :brase
+  def group_type(<<char>>) when char == ?{, do: :brace
   def group_type(<<char>>) when char == ?}, do: :close_brace
   def group_type(_), do: :unknown
 
