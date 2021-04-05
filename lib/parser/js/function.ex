@@ -77,12 +77,12 @@ defmodule Origami.Parser.Js.Function do
   defp parse_arguments(token, children, arguments) do
     case children do
       [] ->
-        Token.concat(token, arguments)
+        Token.merge(token, arguments)
 
       [{:identifier, _, _} = argument | tail] ->
         case tail do
           [] ->
-            Token.concat(token, arguments ++ [argument])
+            Token.merge(token, arguments ++ [argument])
 
           [{:comma, _, _} | tail] ->
             parse_arguments(token, tail, arguments ++ [argument])

@@ -130,12 +130,14 @@ defmodule Origami.Parser.Js.Expression do
 
           [head | _] ->
             interval = Token.get(head, :interval)
-            {:error, Error.new("unexpected token", interval: interval)}
+            error = Error.new("unexpected token", interval: interval)
+            Token.put(head, :error, error)
         end
 
       [head | _] ->
         interval = Token.get(head, :interval)
-        {:error, Error.new("unexpected token", interval: interval)}
+        error = Error.new("unexpected token", interval: interval)
+        Token.put(head, :error, error)
     end
   end
 
@@ -149,7 +151,7 @@ defmodule Origami.Parser.Js.Expression do
       [head | tail] ->
         error_token =
           expression_token
-          |> Token.put(:error, Error.new(error_msg, interval: Token.get(:interval, head)))
+          |> Token.put(:error, Error.new(error_msg, interval: Token.get(head, :interval)))
 
         [error_token | tail]
 
