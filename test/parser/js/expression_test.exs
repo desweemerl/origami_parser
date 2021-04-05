@@ -2,7 +2,7 @@ defmodule Origami.Parser.Js.ExpressionTest do
   use ExUnit.Case
 
   alias Origami.Parser
-  alias Origami.Parser.{Error, Interval, Js, Token}
+  alias Origami.Parser.{Error, Interval, Js}
 
   test "check if simple binary expression is parsed" do
     expression = "1 + 2 + 3"

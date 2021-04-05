@@ -41,13 +41,7 @@ defmodule Origami.Parser.Js.Function do
       {new_buffer, {_, _, children} = group_token} ->
         case Token.get(group_token, :error) do
           nil ->
-            case parse_arguments(children) do
-              {:error, error} ->
-                {new_buffer, token |> Token.put(:error, error)}
-
-              arguments ->
-                {new_buffer, token |> Token.concat(arguments)}
-            end
+            {new_buffer, parse_arguments(token, children)}
 
           group_error ->
             {new_buffer, token |> Token.put(:error, group_error)}
@@ -78,27 +72,29 @@ defmodule Origami.Parser.Js.Function do
     end
   end
 
-  defp parse_arguments(tokens, arguments \\ [])
+  defp parse_arguments(token, children, arguments \\ [])
 
-  defp parse_arguments(tokens, arguments) do
-    case tokens do
+  defp parse_arguments(token, children, arguments) do
+    case children do
       [] ->
-        arguments
+        Token.concat(token, arguments)
 
       [{:identifier, _, _} = argument | tail] ->
         case tail do
           [] ->
-            arguments ++ [argument]
+            Token.concat(token, arguments ++ [argument])
 
-          [{:comma, _, _} | next] ->
-            parse_arguments(next, arguments ++ [argument])
+          [{:comma, _, _} | tail] ->
+            parse_arguments(token, tail, arguments ++ [argument])
 
           [head | _] ->
-            {:error, Error.new("unexpected token", interval: head.interval)}
+            error = Error.new("unexpected token", interval: head.interval)
+            Token.put(token, :error, error)
         end
 
       [head | _] ->
-        {:error, Error.new("unexpected token", interval: head.interval)}
+        error = Error.new("unexpected token", interval: head.interval)
+        Token.put(token, :error, error)
     end
   end
 
