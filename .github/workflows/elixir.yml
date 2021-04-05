@@ -33,7 +33,6 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.erlang }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
     - name: Install dependencies
-      if: steps.mix-cache.outputs.cache-hit != 'true'
       run: |
         apt-get update
         apt-get -y install git
