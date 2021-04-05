@@ -2,7 +2,7 @@ defmodule Origami.Parser.Js.ExpressionTest do
   use ExUnit.Case
 
   alias Origami.Parser
-  alias Origami.Parser.{Error, Interval, Js}
+  alias Origami.Parser.{Error, Js}
 
   test "check if simple binary expression is parsed" do
     expression = "1 + 2 + 3"
@@ -283,11 +283,11 @@ defmodule Origami.Parser.Js.ExpressionTest do
   test "check if parsing 2 sucessive expressions fails" do
     expression = "1 + 1 a"
     {:error, [error]} = Parser.parse(expression, Js)
-    assert Error.new("unexpected token", interval: Interval.new(0, 6, 0, 6)) == error
+    assert Error.new("unexpected token", interval: {0, 6, 0, 6}) == error
 
     expression = "1 + 1 1 / 1"
     {:error, [error]} = Parser.parse(expression, Js)
-    assert Error.new("unexpected token", interval: Interval.new(0, 6, 0, 6)) == error
+    assert Error.new("unexpected token", interval: {0, 6, 0, 6}) == error
   end
 
   test "check if sequence expression is parsed" do
@@ -328,10 +328,10 @@ defmodule Origami.Parser.Js.ExpressionTest do
   test "check if parsing sequence with missing operand fails" do
     expression = "a + 1, b = 2,"
     {:error, [error]} = Parser.parse(expression, Js)
-    assert Error.new("unexpected token", interval: Interval.new(0, 12, 0, 12)) == error
+    assert Error.new("unexpected token", interval: {0, 12, 0, 12}) == error
 
     expression = "a + 1, b = 2,; c = 2"
     {:error, [error]} = Parser.parse(expression, Js)
-    assert Error.new("unexpected token", interval: Interval.new(0, 12, 0, 12)) == error
+    assert Error.new("unexpected token", interval: {0, 12, 0, 12}) == error
   end
 end

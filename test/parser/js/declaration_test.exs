@@ -2,7 +2,7 @@ defmodule Origami.Parser.Js.DeclarationTest do
   use ExUnit.Case
 
   alias Origami.Parser
-  alias Origami.Parser.{Js}
+  alias Origami.Parser.Js
 
   test "check if single declarations are parsed" do
     declaration = """
