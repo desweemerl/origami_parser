@@ -51,7 +51,7 @@ defmodule Origami.Parser.Js.Declaration do
 
   defp fetch_declarator(_), do: :nomatch
 
-  defp build_tokens({_, _, children} = head, tail) do
+  defp build_tokens({_, _, _} = head, tail) do
     case fetch_declarator(tail) do
       :nomatch ->
         [head | tail]

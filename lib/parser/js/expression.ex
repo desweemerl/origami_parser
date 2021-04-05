@@ -106,11 +106,10 @@ defmodule Origami.Parser.Js.Expression do
   end
 
   defp merge_operand_token(
-         expression_token,
+         _,
          [head | tail]
        ) do
     [
-      expression_token,
       head |> Token.put(:error, Error.new("unexpected token"))
       | tail
     ]
@@ -161,9 +160,11 @@ defmodule Origami.Parser.Js.Expression do
     end
   end
 
+  def generate_expression([{_, [{:error, _} | _], _} = head | tail]), do: [head | tail]
+
   def generate_expression([
         {:identifier, _, _} = identifier_token,
-        {_, _, [content]} = operator_token
+        {:arithmetic, _, [content]} = operator_token
         | tail
       ])
       when content in ["++", "--"] do
@@ -174,7 +175,7 @@ defmodule Origami.Parser.Js.Expression do
       )
 
     update_token =
-      Token.new(:update)
+      Token.new(:expr_update)
       |> Token.put(:interval, interval)
       |> Token.concat(identifier_token)
       |> Token.concat(content)
@@ -183,7 +184,7 @@ defmodule Origami.Parser.Js.Expression do
   end
 
   def generate_expression([
-        {_, _, [content]} = operator_token,
+        {:arithmetic, _, [content]} = operator_token,
         {:identifier, _, _} = identifier_token
         | tail
       ])
@@ -195,7 +196,7 @@ defmodule Origami.Parser.Js.Expression do
       )
 
     update_token =
-      Token.new(:update)
+      Token.new(:expr_update)
       |> Token.put(:interval, interval)
       |> Token.concat(content)
       |> Token.concat(identifier_token)
@@ -233,7 +234,7 @@ defmodule Origami.Parser.Js.Expression do
     |> Token.put(:interval, interval)
     |> Token.concat(name)
     |> Token.concat(content)
-    |> merge_operand_token(tail)
+    |> merge_operand_token(generate_expression(tail))
   end
 
   # Manage arithmetic/logical operations
@@ -260,7 +261,7 @@ defmodule Origami.Parser.Js.Expression do
   # Manage function call
   def generate_expression([
         {:identifier, _, [name]} = identifier_token,
-        {:parenthesis, _, [children]} = parenthesis_token
+        {:parenthesis, _, children} = parenthesis_token
         | tail
       ]) do
     argument_tokens =
@@ -295,7 +296,7 @@ defmodule Origami.Parser.Js.Expression do
   end
 
   def generate_expression([
-        {:expr_ternary, _, [_]} = ternary_token
+        {:expr_ternary, _, [_, _]} = ternary_token
         | tail
       ]) do
     case generate_expression(tail) do
@@ -319,7 +320,7 @@ defmodule Origami.Parser.Js.Expression do
   end
 
   def generate_expression([
-        {:expr_ternary, _, []} = ternary_token
+        {:expr_ternary, _, [_]} = ternary_token
         | tail
       ]) do
     case generate_expression(tail) do
@@ -331,7 +332,7 @@ defmodule Origami.Parser.Js.Expression do
       when is_operand_type(type) ->
         interval =
           Interval.merge(
-            Token.get(operand_token, :interval),
+            Token.get(ternary_token, :interval),
             Token.get(operator_token, :interval)
           )
 
@@ -363,6 +364,7 @@ defmodule Origami.Parser.Js.Expression do
     ternary_token =
       Token.new(:expr_ternary)
       |> Token.put(:interval, interval)
+      |> Token.concat(operand_token)
 
     [ternary_token | tail] |> generate_expression
   end
