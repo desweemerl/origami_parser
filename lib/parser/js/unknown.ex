@@ -7,7 +7,7 @@ defmodule Origami.Parser.Js.Unknown do
   @behaviour Parser
 
   @impl Parser
-  def consume(buffer, {_, _, children} = token) do
+  def consume(buffer, {_, _, children} = token, _) do
     {char, new_buffer} = Buffer.get_char(buffer)
 
     children =

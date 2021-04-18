@@ -2,7 +2,7 @@ defmodule Origami.Parser.Js.Punctuation do
   @moduledoc false
 
   alias Origami.Parser
-  alias Origami.Parser.{Buffer, Token}
+  alias Origami.Parser.{Buffer, Error, Token}
 
   @behaviour Parser
 
@@ -17,7 +17,7 @@ defmodule Origami.Parser.Js.Punctuation do
   end
 
   @impl Parser
-  def consume(buffer, token) do
+  def consume(buffer, token, _) do
     {char, new_buffer} = Buffer.get_char(buffer)
 
     case punctuation_type(char) do
@@ -38,8 +38,15 @@ defmodule Origami.Parser.Js.Punctuation do
   end
 
   @impl Parser
-  def rearrange([{:semicolon, _, _} | _]), do: :drop
+  def rearrange([{:comma, _, _} = comma_token | tail], _) do
+    error = Error.new("unexpected token")
+
+    [
+      comma_token |> Token.put(:error, error)
+      | tail
+    ]
+  end
 
   @impl Parser
-  def rearrange(tokens), do: tokens
+  def rearrange(tokens, _), do: tokens
 end

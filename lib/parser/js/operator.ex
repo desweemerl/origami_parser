@@ -53,7 +53,7 @@ defmodule Origami.Parser.Js.Operator do
   end
 
   @impl Parser
-  def consume(buffer, token) do
+  def consume(buffer, token, _) do
     case operators()
          |> Enum.find(&Buffer.check_chars(buffer, &1)) do
       nil ->

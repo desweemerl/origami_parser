@@ -6,11 +6,13 @@ defmodule Origami.Parser.Js.Root do
 
   @behaviour Parser
 
-  defp rearrange_child(child) when is_tuple(child), do: Js.rearrange_token(child)
-  defp rearrange_child(child), do: child
+  defp rearrange_child(child, options) when is_tuple(child),
+    do: Js.rearrange_token(child, options)
+
+  defp rearrange_child(child, _), do: child
 
   @impl Parser
-  def rearrange([{:root, _, children} = root_token]) do
+  def rearrange([{:root, _, children} = root_token], options) do
     case children do
       [] ->
         [root_token]
@@ -21,7 +23,7 @@ defmodule Origami.Parser.Js.Root do
         [
           root_token
           |> Token.put(:interval, first_interval)
-          |> Token.put_children(Js.rearrange_tokens(children))
+          |> Token.put_children(Js.rearrange_tokens(children, options))
         ]
 
       [first_child | _] ->
@@ -32,13 +34,13 @@ defmodule Origami.Parser.Js.Root do
         [
           root_token
           |> Token.put(:interval, Interval.merge(first_interval, last_interval))
-          |> Token.put_children(Js.rearrange_tokens(children))
+          |> Token.put_children(Js.rearrange_tokens(children, options))
         ]
     end
   end
 
   @impl Parser
-  def rearrange([head | tail] = tokens) do
+  def rearrange([head | tail] = tokens, options) do
     case Token.get_children(head) do
       [] ->
         tokens
@@ -46,7 +48,7 @@ defmodule Origami.Parser.Js.Root do
       children ->
         rearranged_children =
           children
-          |> Enum.map(&rearrange_child/1)
+          |> Enum.map(fn child -> rearrange_child(child, options) end)
 
         [
           head |> Token.put_children(rearranged_children)
@@ -56,7 +58,7 @@ defmodule Origami.Parser.Js.Root do
   end
 
   @impl Parser
-  def rearrange(tokens), do: tokens
+  def rearrange(tokens, _), do: tokens
 
   @impl Parser
   def check(token) do
@@ -66,8 +68,14 @@ defmodule Origami.Parser.Js.Root do
           []
 
         error ->
-          interval = Token.get(token, :interval)
-          [error |> Error.put(:interval, interval)]
+          case Error.get(error, :interval) do
+            nil ->
+              interval = Token.get(token, :interval)
+              [error |> Error.put(:interval, interval)]
+
+            _ ->
+              [error]
+          end
       end
 
     case Token.get_children(token) do

@@ -53,27 +53,27 @@ defmodule Origami.Parser.Js.Group do
     end
   end
 
-  defp process_children(buffer, {:brace, _, _} = token) do
-    Parser.parse_buffer(buffer, token, Js.parsers())
+  defp process_children(buffer, {:brace, _, _} = token, options) do
+    Parser.parse_buffer(buffer, token, Js.parsers(), options)
   end
 
-  defp process_children(buffer, {:bracket, _, _} = token) do
-    Parser.parse_buffer(buffer, token, bracket_parser())
+  defp process_children(buffer, {:bracket, _, _} = token, options) do
+    Parser.parse_buffer(buffer, token, bracket_parser(), options)
   end
 
-  defp process_children(buffer, {:parenthesis, _, _} = token) do
-    Parser.parse_buffer(buffer, token, bracket_parser())
+  defp process_children(buffer, {:parenthesis, _, _} = token, options) do
+    Parser.parse_buffer(buffer, token, bracket_parser(), options)
   end
 
-  def get_group(buffer, enforced_type \\ nil) do
+  def get_group(buffer, options) do
     {char, char_buffer} = Buffer.get_char(buffer)
     type = group_type(char)
 
-    if open_group?(char) and (is_nil(enforced_type) or type == enforced_type) do
+    if open_group?(char) and Keyword.get(options, :enforced_type, type) == type do
       token = Token.new(type)
 
       {new_buffer, new_token} =
-        process_children(char_buffer, token)
+        process_children(char_buffer, token, options)
         |> process_last_child(Buffer.interval(buffer, char_buffer))
 
       {new_buffer, new_token |> Token.put(:interval, Buffer.interval(buffer, new_buffer))}
@@ -94,8 +94,8 @@ defmodule Origami.Parser.Js.OpenGroup do
   @behaviour Parser
 
   @impl Parser
-  def consume(buffer, token) do
-    case get_group(buffer) do
+  def consume(buffer, token, options) do
+    case get_group(buffer, options) do
       {buffer_out, children} ->
         {:cont, buffer_out, Token.concat(token, children)}
 
@@ -116,7 +116,7 @@ defmodule Origami.Parser.Js.CloseGroup do
   @behaviour Parser
 
   @impl Parser
-  def consume(buffer, tree) do
+  def consume(buffer, tree, _) do
     {char, new_buffer} = Buffer.get_char(buffer)
     interval = Buffer.interval(buffer, new_buffer)
 

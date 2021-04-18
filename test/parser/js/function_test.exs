@@ -24,14 +24,19 @@ defmodule Origami.Parser.Js.FunctionTest do
             {:identifier, [interval: {0, 17, 0, 17}], ["b"]}
           ],
           [
-            {:keyword, [interval: {1, 2, 1, 7}], ["return"]},
             {
-              :expr_operation,
-              [interval: {1, 9, 1, 13}],
+              :stmt_return,
+              [interval: {1, 2, 1, 13}],
               [
-                {:identifier, [interval: {1, 9, 1, 9}], ["a"]},
-                "+",
-                {:identifier, [interval: {1, 13, 1, 13}], ["b"]}
+                {
+                  :expr_operation,
+                  [interval: {1, 9, 1, 13}],
+                  [
+                    {:identifier, [interval: {1, 9, 1, 9}], ["a"]},
+                    "+",
+                    {:identifier, [interval: {1, 13, 1, 13}], ["b"]}
+                  ]
+                }
               ]
             }
           ]

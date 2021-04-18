@@ -19,7 +19,7 @@ defmodule Origami.Parser.Js.NumberTest do
 
     {:error, errors} = Parser.parse(number, Js)
 
-    expectation = [{"Unexpected token", interval: {0, 5, 0, 9}}]
+    expectation = [{"unexpected token", interval: {0, 5, 0, 9}}]
     assert expectation == errors
   end
 
@@ -68,7 +68,7 @@ defmodule Origami.Parser.Js.NumberTest do
 
     {:error, errors} = Parser.parse(number, Js)
 
-    expectation = [{"Unexpected token \".\"", interval: {0, 0, 0, 4}}]
+    expectation = [{"unexpected token \".\"", interval: {0, 0, 0, 4}}]
     assert expectation == errors
   end
 

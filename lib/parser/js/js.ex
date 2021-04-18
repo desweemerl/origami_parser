@@ -41,9 +41,10 @@ defmodule Origami.Parser.Js do
 
   def end_line?(_), do: false
 
-  def rearrange_token(token), do: Parser.rearrange_token(token, rearrangers())
+  def rearrange_token(token, options), do: Parser.rearrange_token(token, rearrangers(), options)
 
-  def rearrange_tokens(tokens), do: Parser.rearrange_tokens(tokens, rearrangers())
+  def rearrange_tokens(tokens, options),
+    do: Parser.rearrange_tokens(tokens, rearrangers(), options)
 
   def check_token(token), do: Parser.check_token(token, guards())
 
@@ -53,11 +54,12 @@ defmodule Origami.Parser.Js do
   def rearrangers do
     [
       Origami.Parser.Js.Root,
-      Origami.Parser.Js.Number,
       Origami.Parser.Js.Function,
       Origami.Parser.Js.Expression,
       Origami.Parser.Js.Declaration,
-      Origami.Parser.Js.Punctuation
+      Origami.Parser.Js.Punctuation,
+      Origami.Parser.Js.Statement,
+      Origami.Parser.Js.EndLine
     ]
   end
 

@@ -13,4 +13,8 @@ defmodule Origami.Parser.Error do
   def put({message, metadata}, key, value) when is_list(metadata) do
     {message, Keyword.put(metadata, key, value)}
   end
+
+  def get({_, metadata}, key, default \\ nil) when is_list(metadata) do
+    Keyword.get(metadata, key, default)
+  end
 end

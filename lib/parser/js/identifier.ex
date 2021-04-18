@@ -33,7 +33,7 @@ defmodule Origami.Parser.Js.Identifier do
   def get_identifier(buffer), do: get_identifier(buffer, "")
 
   @impl Parser
-  def consume(buffer, token) do
+  def consume(buffer, token, _) do
     case get_identifier(buffer) do
       {_, ""} ->
         :nomatch

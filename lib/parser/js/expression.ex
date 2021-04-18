@@ -2,7 +2,7 @@ defmodule Origami.Parser.Js.Expression do
   @moduledoc false
 
   alias Origami.Parser
-  alias Origami.Parser.{Error, Interval, Js, Token}
+  alias Origami.Parser.{Error, Interval, Token}
 
   import Origami.Parser.Js.Number, only: [is_number_type: 1]
 
@@ -115,11 +115,12 @@ defmodule Origami.Parser.Js.Expression do
     ]
   end
 
-  defp process_arguments(tokens, arguments \\ []) do
-    case tokens do
-      [] ->
-        arguments
+  defp process_arguments(tokens, arguments \\ [])
 
+  defp process_arguments([], arguments), do: arguments
+
+  defp process_arguments(tokens, arguments) do
+    case generate_expression(tokens) do
       [{type, _, _} = operand_token | tail] when is_operand_type(type) ->
         case tail do
           [] ->
@@ -162,7 +163,7 @@ defmodule Origami.Parser.Js.Expression do
     end
   end
 
-  def generate_expression([{_, [{:error, _} | _], _} = head | tail]), do: [head | tail]
+  # def generate_expression([{_, [{:error, _} | _], _} = head | tail]), do: [head | tail]
 
   def generate_expression([
         {:identifier, _, _} = identifier_token,
@@ -266,10 +267,7 @@ defmodule Origami.Parser.Js.Expression do
         {:parenthesis, _, children} = parenthesis_token
         | tail
       ]) do
-    argument_tokens =
-      children
-      |> generate_expression()
-      |> process_arguments()
+    argument_tokens = process_arguments(children)
 
     interval =
       Interval.merge(
@@ -371,31 +369,9 @@ defmodule Origami.Parser.Js.Expression do
     [ternary_token | tail] |> generate_expression
   end
 
-  # Catch all
-  def generate_expression([
-        {expression_type, _, _} = expression_token,
-        {type, _, _} = next_token
-        | tail
-      ])
-      when is_expression_type(expression_type) do
-    if type in [:comma, :semicolon] do
-      [expression_token, next_token | tail]
-    else
-      if Js.same_line?([expression_token, next_token]) do
-        error_token =
-          next_token
-          |> Token.put(:error, Error.new("unexpected token"))
-
-        [expression_token, error_token | tail]
-      else
-        [expression_token, next_token | tail]
-      end
-    end
-  end
-
   def generate_expression(tokens), do: tokens
 
-  defp rearrange_sequence(tokens, {:expr_sequence, _, _} = sequence_token) do
+  defp rearrange_sequence(tokens, {:expr_sequence, _, _} = sequence_token, comma_token) do
     case tokens do
       [
         {type, _, _} = operand_token
@@ -413,32 +389,36 @@ defmodule Origami.Parser.Js.Expression do
           |> Token.put(:interval, interval)
           |> Token.concat(operand_token)
 
-        rearrange_sequence(tail, new_sequence_token)
+        case tail do
+          [{:comma, _, _} = comma_token | tail] ->
+            tail
+            |> generate_expression
+            |> rearrange_sequence(new_sequence_token, comma_token)
 
-      [
-        {:comma, _, _} = comma_token
-        | tail
-      ] ->
-        case generate_expression(tail) do
-          [{:semicolon, _, _} | tail] ->
-            error_token = comma_token |> Token.put(:error, Error.new("unexpected token"))
-            [sequence_token, error_token | tail]
-
-          [] ->
-            error_token = comma_token |> Token.put(:error, Error.new("unexpected token"))
-            [sequence_token, error_token]
-
-          tail ->
-            rearrange_sequence(tail, sequence_token)
+          tokens ->
+            [new_sequence_token | tokens]
         end
 
-      tail ->
-        [sequence_token | tail]
+      tokens ->
+        interval =
+          Interval.merge(
+            Token.get(sequence_token, :interval),
+            Token.get(comma_token, :interval)
+          )
+
+        error = Error.new("unexpected token", interval: Token.get(comma_token, :interval))
+
+        [
+          sequence_token
+          |> Token.put(:interval, interval)
+          |> Token.put(:error, error)
+          | tokens
+        ]
     end
   end
 
   @impl Parser
-  def rearrange(tokens) do
+  def rearrange(tokens, _) do
     case generate_expression(tokens) do
       [
         {type, _, _} = operand_token,
@@ -458,7 +438,7 @@ defmodule Origami.Parser.Js.Expression do
           |> Token.concat(operand_token)
 
         generate_expression(tail)
-        |> rearrange_sequence(sequence_token)
+        |> rearrange_sequence(sequence_token, comma_token)
 
       tail ->
         tail

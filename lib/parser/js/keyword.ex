@@ -22,7 +22,7 @@ defmodule Origami.Parser.Js.Keyword do
   @behaviour Parser
 
   @impl Parser
-  def consume(buffer, token) do
+  def consume(buffer, token, _) do
     case keywords()
          |> Enum.find(&Buffer.check_chars(buffer, &1)) do
       nil ->

@@ -7,7 +7,7 @@ defmodule Origami.Parser.Js.String do
   @behaviour Parser
 
   @impl Parser
-  def consume(buffer, token) do
+  def consume(buffer, token, _) do
     {char, new_buffer} = Buffer.get_char(buffer)
 
     if char in ["\"", "'"] do

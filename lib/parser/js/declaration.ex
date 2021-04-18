@@ -71,7 +71,7 @@ defmodule Origami.Parser.Js.Declaration do
   end
 
   @impl Parser
-  def rearrange([{:keyword, _, [name]} = keyword_token | tail])
+  def rearrange([{:keyword, _, [name]} = keyword_token | tail], _)
       when name in ["let", "const", "var"] do
     Token.new(String.to_atom(name))
     |> Token.put(:interval, Token.get(keyword_token, :interval))
@@ -79,5 +79,5 @@ defmodule Origami.Parser.Js.Declaration do
   end
 
   @impl Parser
-  def rearrange(tokens), do: tokens
+  def rearrange(tokens, _), do: tokens
 end

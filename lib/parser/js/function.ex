@@ -8,9 +8,9 @@ defmodule Origami.Parser.Js.Function do
   @behaviour Parser
 
   @impl Parser
-  def consume(buffer, token) do
+  def consume(buffer, token, options) do
     if Buffer.check_chars(buffer, "function") do
-      parse_function(buffer, token)
+      parse_function(buffer, token, options)
     else
       :nomatch
     end
@@ -33,7 +33,7 @@ defmodule Origami.Parser.Js.Function do
   defp generate_arguments({buffer, token}) do
     case buffer
          |> Buffer.consume_chars(fn char -> Space.space?(char) end)
-         |> Group.get_group(:parenthesis) do
+         |> Group.get_group(enforced_type: :parenthesis) do
       :nomatch ->
         error = Error.new("Missing arguments", interval: Token.get(token, :interval))
         {buffer, token |> Token.put(:error, error)}
@@ -49,21 +49,23 @@ defmodule Origami.Parser.Js.Function do
     end
   end
 
-  defp generate_body({buffer, {:function, _, _} = token}) do
+  defp generate_body({buffer, {:function, _, _} = token}, options) do
     if Token.has_error?(token) do
       {buffer, token}
     else
       case buffer
            |> Buffer.consume_chars(fn char -> Space.space?(char) end)
-           |> Group.get_group(:brace) do
+           |> Group.get_group(enforced_type: :brace) do
         :nomatch ->
-          error = Error.new("Unexpected token", interval: Token.get(token, :interval))
+          error = Error.new("unexpected token", interval: Token.get(token, :interval))
           {buffer, token |> Token.put(:error, error)}
 
         {new_buffer, {_, _, children} = body_token} ->
           case Token.get(body_token, :error) do
             nil ->
-              {new_buffer, token |> Token.concat(Js.rearrange_tokens(children))}
+              {new_buffer,
+               token
+               |> Token.concat(Js.rearrange_tokens(children, options ++ [in_function: true]))}
 
             body_error ->
               {new_buffer, token |> Token.put(:error, body_error)}
@@ -102,12 +104,12 @@ defmodule Origami.Parser.Js.Function do
     {buffer, token |> Token.put(:interval, Buffer.interval(previous_buffer, buffer))}
   end
 
-  defp parse_function(buffer, token) do
+  defp parse_function(buffer, token, options) do
     {new_buffer, function_token} =
       buffer
       |> generate_function_token()
       |> generate_arguments()
-      |> generate_body()
+      |> generate_body(options)
       |> set_interval(buffer)
 
     {
@@ -118,13 +120,13 @@ defmodule Origami.Parser.Js.Function do
   end
 
   @impl Parser
-  def rearrange([{:function, _, [name, arguments, body]} = head | tail]) do
+  def rearrange([{:function, _, [name, arguments, body]} = head | tail], options) do
     [
-      head |> Token.put_children([name, arguments, Js.rearrange_tokens(body)])
+      head |> Token.put_children([name, arguments, Js.rearrange_tokens(body, options)])
       | tail
     ]
   end
 
   @impl Parser
-  def rearrange(tokens), do: tokens
+  def rearrange(tokens, _), do: tokens
 end

@@ -20,7 +20,7 @@ defmodule Origami.Parser.Js.IdentifierTest do
 
     {:error, errors} = Parser.parse(identifier, Js)
 
-    expectation = [{"Unexpected token", interval: {0, 1, 0, 11}}]
+    expectation = [{"unexpected token", interval: {0, 1, 0, 11}}]
     assert expectation == errors
   end
 end

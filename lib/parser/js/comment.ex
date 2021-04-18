@@ -7,7 +7,7 @@ defmodule Origami.Parser.Js.Comment do
   @behaviour Parser
 
   @impl Parser
-  def consume(buffer, token) do
+  def consume(buffer, token, _) do
     case Buffer.check_chars(buffer, "//") do
       true ->
         # Get the remaining content on the current line

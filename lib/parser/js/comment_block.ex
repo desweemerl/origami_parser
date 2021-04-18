@@ -7,7 +7,7 @@ defmodule Origami.Parser.Js.CommentBlock do
   @behaviour Parser
 
   @impl Parser
-  def consume(buffer, token) do
+  def consume(buffer, token, _) do
     if Buffer.check_chars(buffer, "/*") do
       comment_token = Token.new(:comment_block)
 
